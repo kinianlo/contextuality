@@ -57,4 +57,4 @@ class CyclicScenario(Scenario):
 
 if __name__ == "__main__":
     s = CyclicScenario(['x1', 'x2', 'x3'], 2)
-    print(s.incidence_matrix)
+    print(repr(s.incidence_matrix))

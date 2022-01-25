@@ -1,4 +1,4 @@
-from scenario import Scenario, CyclicScenario
+from contextuality.scenario import Scenario, CyclicScenario
 
 class Model:
     def __init__(self, scenario: Scenario):
@@ -16,5 +16,5 @@ class Model:
     def CbD_measure(self) -> float:
         pass
 
-    def mix(self, other: Model, weight: float) -> Model:
+    def mix(self, other, weight: float):
         pass
