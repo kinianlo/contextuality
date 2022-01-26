@@ -16,7 +16,7 @@ class Model:
             self._distributions = numpy.array(distributions)
             num_outcome = scenario.num_outcome
             rank = len(scenario.contexts)
-            expected_shape = (rank * num_outcome**2, 4)
+            expected_shape = (rank, num_outcome**2)
             if self._distributions.shape != expected_shape:
                 raise ValueError("The distributions provided are not compatible with the scenario.")
         else:
@@ -115,6 +115,41 @@ class Model:
         mix_model = Model(self.scenario, mix_dist)
         return mix_model
 
+    def __distributions_binary_operation(self, other, operation):
+        if self.scenario is not other.scenario and self.scenario != other.scenario:
+            raise ValueError("Incompatible scenarios.")
+        is_self_cyclic = isinstance(self.scenario, CyclicScenario)
+        is_other_cyclic = isinstance(other.scenario, CyclicScenario)
+        if is_self_cyclic or is_other_cyclic:
+            dist = operation(self._distributions, other._distributions)
+            if is_self_cyclic:
+                return Model(self.scenario, dist) 
+            else:
+                return Model(other.scenario, dist)
+        else:
+            dist = []
+            self_dist = self.scenario._distributions
+            other_dist = other.scenario._distributions
+            for i in range(len(self.scenario.contexts)):
+                dist.append(operation(self_dist[i], self_dist[i]))
+            return Model(self.scenario, dist)
+
+    def __add__(self, other):
+        return self.__distributions_binary_operation(other, lambda x, y: x + y)
+
+    def __sub__(self, other):
+        return self.__distributions_binary_operation(other, lambda x, y: x - y)
+
+    def __mul__(self, scaler):
+        if isinstance(self.scenario, CyclicScenario):
+            dist = self._distributions * scaler
+        else:
+            dist = [d * scaler for d in self._distributions]
+        return Model(self.scenario, self._distributions * scaler)
+
+    def __rmul__(self, scaler):
+        return self.__mul__(scaler)
+
     def __str__(self):
         num_outcome = self.scenario.num_outcome;
         contexts = self.scenario.contexts
@@ -198,15 +233,17 @@ def random_model(scenario: Scenario, scaling=None):
 
 if __name__ == "__main__":
     s = CyclicScenario(['x1', 'x2', 'x3'], 2)
-    dist = [[1/2, 0, 0, 1/2], [1/2, 0, 0, 1/2], [0, 1/2, 1/2, 0]]
+    dist1 = [[1/2, 0, 0, 1/2], [1/2, 0, 0, 1/2], [0, 1/2, 1/2, 0]]
     dist2 = [[1/2, 0, 0, 1/2], [1/2, 0, 0, 1/2], [1/2, 0, 0, 1/2]]
-    m = Model(s, dist)
+    m1 = Model(s, dist1)
     m2 = Model(s, dist2)
-    m = m.mix(m2, 0.9)
+    # m = m1.mix(m2, 0.9)
+    weight = 0.9
+    m = weight * m1 + (1-weight) * m2
     print(str(m))
     print(f'CF:\t{m.contextual_fraction():.5f}')
     print(f'SF:\t{m.signalling_fraction():.5f}')
     print(f'CbD:\t{m.CbD_measure():.5f}')
     print(m.__repr__())
 
-    print(s.get_model_from_vector(m.vector))
+    print(get_model_from_vector(s, m.vector))
