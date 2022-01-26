@@ -44,6 +44,9 @@ class Scenario:
         M = numpy.vstack(M_context)
         return M
 
+    def __eq__(self, other):
+        return self.contexts == other.contexts and self.num_outcome == other.num_outcome
+
 
 class CyclicScenario(Scenario):
     def __init__(self, observables: list[str], num_outcome: int):
@@ -54,6 +57,14 @@ class CyclicScenario(Scenario):
             contexts.append((observables[i], observables[i_next]))
 
         super().__init__(contexts, num_outcome)
+
+def chsh_scenario() -> CyclicScenario:
+    observables = ['a1', 'b1', 'a2', 'b2']
+    return CyclicScenario(observables, 2)
+
+def cyclic_scenario(n: int = 3):
+    observables = [f'x{i+1}' for i in range(n)]
+    return CyclicScenario(observables, 2)
 
 if __name__ == "__main__":
     s = CyclicScenario(['x1', 'x2', 'x3'], 2)
