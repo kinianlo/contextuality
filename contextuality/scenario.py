@@ -52,6 +52,16 @@ class Scenario:
         contexts_repr = self.contexts.__repr__()
         return f"{class_name}({contexts_repr}, {self.num_outcome})"
 
+    def __str__(self):
+        observable_str = ', '.join([ob for ob in self.observables])
+        context_str = ', '.join([str(c).replace("'", "") for c in self.contexts])
+        outcome_str = ', '.join(map(str, range(self.num_outcome)))
+        out = ''
+        out += f"Observables\t[{observable_str}]\n"
+        out += f"Contexts\t[{context_str}]\n"
+        out += f"Outcomes\t[{outcome_str}]"
+        return out
+
 
 class CyclicScenario(Scenario):
     def __init__(self, observables: list[str], num_outcome: int):
@@ -75,3 +85,5 @@ if __name__ == "__main__":
     s = CyclicScenario(['x1', 'x2', 'x3'], 2)
     print(repr(s.incidence_matrix))
     print(s.__repr__())
+    print(s)
+
