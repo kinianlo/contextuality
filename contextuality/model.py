@@ -12,16 +12,20 @@ class Model:
         self._distributions = []
         self._vector = None
 
-        for i in range(len(distributions)):
-            dist = distributions[i]
-            context = scenario.contexts[i]
+        if isinstance(scenario, CyclicScenario):
+            self._distributions = numpy.array(distributions)
+            num_outcome = scenario.num_outcome
+            rank = len(scenario.contexts)
+            expected_shape = (rank * num_outcome**2, 4)
+            if self._distributions.shape != expected_shape:
+                raise ValueError("The distributions provided are not compatible with the scenario.")
+        else:
+            for i in range(len(distributions)):
+                context = scenario.contexts[i]
+                self._distributions.append(numpy.array(distributions[i]))
 
-            if abs(sum(dist) -1) > 1e-10:
-                raise ValueError(f"The distribution provided for context {context} does not sum to one")
-            if len(dist) != scenario.num_outcome*len(context):
-                raise ValueError(f"The distribution provided for context {context} has the wrong number of probabilities")
-
-            self._distributions.append(numpy.array(dist))
+                if len(dist) != scenario.num_outcome*len(context):
+                    raise ValueError(f"The distribution provided for context {context} has the wrong number of probabilities")
 
     @property
     def vector(self) -> numpy.ndarray:
