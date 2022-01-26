@@ -142,6 +142,19 @@ class Model:
         return f"{class_name}({scenario_repr}, {dist_repr})"
 
 
+def get_model_from_vector(scenario, vector) -> Model:
+    dist = []
+    next_start = 0
+    for c in scenario.contexts:
+        num_assign = scenario.num_outcome**len(c)
+        dist.append(numpy)
+
+    num_assign = [scenario.num_outcome ** len(c) for c in scenario.contexts]
+    context_last_idx = numpy.add.accumulate(num_assign)
+    dist = numpy.split(vector, context_last_idx[:-1])
+    return Model(scenario, dist)
+
+
 def pr_model(n: int=None) -> Model:
     if not n:
         table = [[1/2, 0, 0, 1/2],
@@ -191,4 +204,5 @@ if __name__ == "__main__":
     print(f'SF:\t{m.signalling_fraction():.5f}')
     print(f'CbD:\t{m.CbD_measure():.5f}')
     print(m.__repr__())
-    print(random_model(5))
+
+    print(s.get_model_from_vector(m.vector))
