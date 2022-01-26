@@ -73,6 +73,12 @@ class CyclicScenario(Scenario):
 
         super().__init__(contexts, num_outcome)
 
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        observables_repr = self.observables.__repr__()
+        return f"{class_name}({observables_repr}, {self.num_outcome})"
+        
+
 def chsh_scenario() -> CyclicScenario:
     observables = ['a1', 'b1', 'a2', 'b2']
     return CyclicScenario(observables, 2)
