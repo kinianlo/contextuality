@@ -135,6 +135,13 @@ class Model:
                 out += ' '*len(context_str) + dist_str + '\n'
         return out
 
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        scenario_repr = self.scenario.__repr__()
+        dist_repr = self._distributions.__repr__()
+        return f"{class_name}({scenario_repr}, {dist_repr})"
+
+
 def pr_model(n: int=None) -> Model:
     if not n:
         table = [[1/2, 0, 0, 1/2],
@@ -150,7 +157,6 @@ def pr_model(n: int=None) -> Model:
         table[-1, 2] = 1/2
         return Model(cyclic_scenario(n), table)
 
-
 def bell_model() -> Model:
     scenario = chsh_scenario()
     table = [[4/8, 0/8, 0/8, 4/8],
@@ -159,12 +165,15 @@ def bell_model() -> Model:
              [1/8, 3/8, 3/8, 1/8]]
     return Model(chsh_scenario(), table)
 
-def random_model(scenario: Scenario):
+def random_model(scenario: Scenario, scaling=None):
     contexts = scenario.contexts
     num_outcome = scenario.num_outcome
     table = []
-    for context in scenario.contexts:
+    for i in range(len(contexts)):
+        context = contexts[i]
         rand_dist = numpy.random.rand(num_outcome**len(context))
+        if scaling:
+            rand_dist = rand_dist * scaling[i]
         rand_dist = rand_dist/sum(rand_dist)
         table.append(rand_dist)
     return Model(scenario, table)
@@ -181,3 +190,5 @@ if __name__ == "__main__":
     print(f'CF:\t{m.contextual_fraction():.5f}')
     print(f'SF:\t{m.signalling_fraction():.5f}')
     print(f'CbD:\t{m.CbD_measure():.5f}')
+    print(m.__repr__())
+    print(random_model(5))

@@ -47,6 +47,11 @@ class Scenario:
     def __eq__(self, other):
         return self.contexts == other.contexts and self.num_outcome == other.num_outcome
 
+    def __repr__(self):
+        class_name = self.__class__.__name__
+        contexts_repr = self.contexts.__repr__()
+        return f"{class_name}({contexts_repr}, {self.num_outcome})"
+
 
 class CyclicScenario(Scenario):
     def __init__(self, observables: list[str], num_outcome: int):
@@ -69,3 +74,4 @@ def cyclic_scenario(n: int = 3):
 if __name__ == "__main__":
     s = CyclicScenario(['x1', 'x2', 'x3'], 2)
     print(repr(s.incidence_matrix))
+    print(s.__repr__())
