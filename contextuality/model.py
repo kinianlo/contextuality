@@ -182,12 +182,6 @@ class Model:
 
 
 def get_model_from_vector(scenario, vector) -> Model:
-    dist = []
-    next_start = 0
-    for c in scenario.contexts:
-        num_assign = scenario.num_outcome**len(c)
-        dist.append(numpy)
-
     num_assign = [scenario.num_outcome ** len(c) for c in scenario.contexts]
     context_last_idx = numpy.add.accumulate(num_assign)
     dist = numpy.split(vector, context_last_idx[:-1])
