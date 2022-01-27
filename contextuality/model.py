@@ -174,6 +174,12 @@ class Model:
                 out += ' '*len(context_str) + dist_str + '\n'
         return out
 
+    def __eq__(self, other):
+        if self.scenario != other.scenario:
+            return False
+        if isinstance(self.scenario, CyclicScenario) or isinstance(other.scenario, CyclicScenario):
+            return numpy.allclose(self._distributions, other._distributions)
+
     def __repr__(self):
         class_name = self.__class__.__name__
         scenario_repr = self.scenario.__repr__()
@@ -186,7 +192,6 @@ def get_model_from_vector(scenario, vector) -> Model:
     context_last_idx = numpy.add.accumulate(num_assign)
     dist = numpy.split(vector, context_last_idx[:-1])
     return Model(scenario, dist)
-
 
 def pr_model(n: int=None) -> Model:
     if not n:
