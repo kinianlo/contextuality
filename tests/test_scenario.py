@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
-from contextuality.scenario import Scenario, CyclicScenario
+from contextuality.model import Scenario, CyclicScenario
+
 def test_incidence_matrix():
     contexts = [('x1', 'x2'), ('x2', 'x3'), ('x3', 'x1')]
     num_outcome = 2
@@ -34,4 +35,6 @@ def test_cyclic_scenario():
 
     s = CyclicScenario(observables, num_outcome)
     assert s.contexts == expected
+
+def test_scenario_observables():
 
