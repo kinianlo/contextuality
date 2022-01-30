@@ -293,6 +293,15 @@ def pr_model(n: int=None) -> Model:
         table[-1, 2] = 1/2
         return Model(cyclic_scenario(n), table)
 
+def random_pr_like_model(n: int=3):
+    table = numpy.zeros((n, 4))
+    table[:-1, 0] = numpy.random.rand(n-1)
+    table[:-1, -1] = numpy.random.rand(n-1)
+    table[-1, 1] = numpy.random.rand()
+    table[-1, 2] = numpy.random.rand()
+    table = table / numpy.sum(table, axis=1, keepdims=True)
+    return Model(cyclic_scenario(n), table)
+
 def bell_model() -> Model:
     scenario = chsh_scenario()
     table = [[4/8, 0/8, 0/8, 4/8],
@@ -317,6 +326,7 @@ def random_model(scenario: Scenario, scaling=None):
 
 if __name__ == "__main__":
     s = CyclicScenario(['x1', 'x2', 'x3'], 2)
+    print(s)
     dist1 = [[1/2, 0, 0, 1/2], [1/2, 0, 0, 1/2], [0, 1/2, 1/2, 0]]
     dist2 = [[1/2, 0, 0, 1/2], [1/2, 0, 0, 1/2], [1/2, 0, 0, 1/2]]
     m1 = Model(s, dist1)
