@@ -3,7 +3,19 @@ import itertools
 import picos
 
 class Scenario:
-    def __init__(self, contexts: list[tuple[str, ...]], num_outcome: int):
+    """
+    Defines a measurement scenario.
+
+    Parameters
+    ----------
+    contexts : list
+        A list of context where each context is a tuple of observables.
+        An observable is just a string which represent its name. 
+    num_outcome : int
+        The number of possible outcome for every observables.
+    """
+
+    def __init__(self, contexts: list, num_outcome: int):
         self.contexts = contexts
         self.num_outcome = num_outcome
 
@@ -11,7 +23,9 @@ class Scenario:
         self._incidence_matrix = None
 
     @property
-    def observables(self) -> list[str]:
+    def observables(self) -> list:
+        """Returns a list of observables.
+        """
         if self._observables:
             return self._observables
 
@@ -24,6 +38,9 @@ class Scenario:
 
     @property
     def incidence_matrix(self) -> numpy.ndarray:
+        """Compute the incidence matrix which maps a global distribution
+        to the empirical model via matrix multiplication.
+        """
         if self._incidence_matrix:
             return self._incidence_matrix
         global_assigns = list(itertools.product(range(self.num_outcome), repeat=len(self.observables)))
@@ -62,10 +79,32 @@ class Scenario:
         out += f"Contexts\t[{context_str}]\n"
         out += f"Outcomes\t[{outcome_str}]"
         return out
+        weight_NS = self._decomposition('sf')
+        weight_SS = 1- weight_NS
+        return weight_SS
 
 
 class CyclicScenario(Scenario):
-    def __init__(self, observables: list[str], num_outcome: int):
+    """Defines a cyclic scenario which is a special kind of
+    measurement scenario. 
+    Each observable appears in exactly two contexts and each
+    context contains exactly two observables.
+
+    Cyclic scenarios allows quicker computations compared to
+    a general scenario. Therefore, it is recommended to use
+    CyclicScenario whenever possible.
+
+    Parameters
+    ----------
+    observables : list of strings
+        A list of observables. Every pair of observables appear
+        next to each other is considered as a context. The last
+        and the first observable together also form a context.
+    num_outcome : int
+        The number of possible outcome for every observables.
+    """
+
+    def __init__(self, observables: list, num_outcome: int):
         self._observables = observables
         contexts = []
         for i in range(len(observables)):
@@ -81,6 +120,20 @@ class CyclicScenario(Scenario):
         
 
 class Model:
+    """Defines a empirical model which specifies a probability
+    distribution for each context in a given measurement scenario.
+
+    Parameters
+    ----------
+    scenario : Scenario
+        A measurement scenario.
+    distributions : iterable of iterables
+        A list of distributions for each context. The distributions
+        should have the same ordering as the contexts in the 
+        scenario. A distribution for N observables should be a list of
+        probabilities of length num_outcome**N.
+    """
+
     def __init__(self, scenario: Scenario, distributions):
         if len(distributions) != len(scenario.contexts):
             raise ValueError('Number of distributions must be equal to the number of contexts')
@@ -106,12 +159,34 @@ class Model:
 
     @property
     def vector(self) -> numpy.ndarray:
+        """Returns the distributions in a flattened vector.
+        The distribution of the first context goes first in
+        the vector. The distribution of the second context goes 
+        second in the vector, etc.
+        """
         if self._vector:
             return self._vector
         else:
             return numpy.array(self._distributions).flatten()
 
     def _decomposition(self, mode: str) -> float:
+        """_decomposition.
+
+        Parameters
+        ----------
+        mode : str
+            A string specifying the type of decomposition wanted.
+            The options are:
+                'cf': contextual fraction
+                'sf': signalling_fraction
+                'sf_old': signalling_fraction with constraint b > -1
+
+        Returns
+        -------
+        float
+            The maximum fraction of the restricted part of the 
+            decomposition, e.g. the non-contextual part.
+        """
         M = self.scenario.incidence_matrix
         v = self.vector
         num_global_assign = M.shape[1]
@@ -128,9 +203,9 @@ class Model:
 
         if mode == 'cf':
             problem.add_constraint(b >= 0)
-        if mode == 'sf':
+        if mode == 'sf_old':
             problem.add_constraint(b >= -1)
-        if mode == 'sf_gz':
+        if mode == 'sf':
             problem.add_constraint(M*b >= 0)
 
         solution = problem.solve()
@@ -138,16 +213,31 @@ class Model:
         return weight_N
 
     def contextual_fraction(self) -> float:
+        """Compute the contextual fraction of the model.
+        """
         weight_NC = self._decomposition('cf')
         weight_SC = 1 - weight_NC
         return weight_SC
 
     def signalling_fraction(self) -> float:
+        """Compute the signalling fraction of the model.
+        """
         weight_NS = self._decomposition('sf')
         weight_SS = 1- weight_NS
         return weight_SS
 
+    def _signalling_fraction_old(self) -> float:
+        """Compute the signalling fraction with the b > -1
+        constraint.
+        """
+        weight_NS = self._decomposition('sf_old')
+        weight_SS = 1- weight_NS
+        return weight_SS
+
+
     def CbD_measure(self) -> float:
+        """Compute the CbD measure for binary cyclic scenarios.
+        """
         # Currently only for cyclic scenario with binary outcome 
         assert isinstance(self.scenario, CyclicScenario)
         assert self.scenario.num_outcome == 2
@@ -179,6 +269,20 @@ class Model:
         return s_odd - Delta - (len(contexts) - 2)
 
     def mix(self, other, weight: float):
+        """Return the convex sum of this model and another model.
+
+        Parameters
+        ----------
+        other :
+            other
+        weight : float
+            The weight given to the other model. 
+
+        Returns
+        -------
+        Model
+            The convex sum.
+        """
         if self.scenario != other.scenario:
             raise ValueError("Cannot mix two models with non-identical scenarios")
         
@@ -193,6 +297,16 @@ class Model:
         return mix_model
 
     def __distributions_binary_operation(self, other, operation):
+        """A helper function to perform binary operation on the
+        distributions of two models with the same measurement scenario.
+
+        Parameters
+        ----------
+        other : Model
+            The other model.
+        operation : callable
+            A function or lambda with two arguments.
+        """
         if self.scenario is not other.scenario and self.scenario != other.scenario:
             raise ValueError("Incompatible scenarios.")
         is_self_cyclic = isinstance(self.scenario, CyclicScenario)
@@ -265,20 +379,63 @@ class Model:
 
 
 def chsh_scenario() -> CyclicScenario:
+    """Create a CHSH/Bell measurement scenario.
+    Returns
+    -------
+    CyclicScenario
+    """
     observables = ['a1', 'b1', 'a2', 'b2']
     return CyclicScenario(observables, 2)
 
-def cyclic_scenario(n: int = 3):
-    observables = [f'x{i+1}' for i in range(n)]
+def cyclic_scenario(n: int=3, ob_name: str='x'):
+    """Create a cyclic scenario.
+
+    Parameters
+    ----------
+    n : int
+        The number of observables.
+    ob_name: str
+        The common name given to the observables.
+    """
+    observables = [f'{ob_name}{i+1}' for i in range(n)]
     return CyclicScenario(observables, 2)
 
 def get_model_from_vector(scenario, vector) -> Model:
+    """Return a empirical model given the distributions
+    in a flattened vector.
+
+    Parameters
+    ----------
+    scenario : Scenario
+    vector :
+        The vector containing all the distributions for 
+        each context in the scenario.
+
+    Returns
+    -------
+    Model
+        The empirical model constructed from the vector.
+    """
     num_assign = [scenario.num_outcome ** len(c) for c in scenario.contexts]
     context_last_idx = numpy.add.accumulate(num_assign)
     dist = numpy.split(vector, context_last_idx[:-1])
     return Model(scenario, dist)
 
 def pr_model(n: int=None) -> Model:
+    """Create a (general) PR box empirical model.
+    If the number of observable is not specified, the
+    traditional PR box with 4 observables is created,
+    and the scenario used is the CHSH scenario.
+
+    Parameters
+    ----------
+    n : int
+        Number of observables. I.e. rank.
+
+    Returns
+    -------
+    Model
+    """
     if not n:
         table = [[1/2, 0, 0, 1/2],
                 [1/2, 0, 0, 1/2],
@@ -294,6 +451,21 @@ def pr_model(n: int=None) -> Model:
         return Model(cyclic_scenario(n), table)
 
 def random_pr_like_model(n: int=3):
+    """Generate a PR-like model. 
+    PR-like models are those with the same support
+    as PR-like. In other words, whenever there is a
+    zero probability in the PR box, the corresponding probability
+    in a PR-like model is also zero. 
+
+    The probabilities are generated by first uniformly 
+    sample real numbers between 0 and 1, and then 
+    each distribution is normalised to one.
+
+    Parameters
+    ----------
+    n : int
+        The number of observables.
+    """
     table = numpy.zeros((n, 4))
     table[:-1, 0] = numpy.random.rand(n-1)
     table[:-1, -1] = numpy.random.rand(n-1)
@@ -303,6 +475,8 @@ def random_pr_like_model(n: int=3):
     return Model(cyclic_scenario(n), table)
 
 def bell_model() -> Model:
+    """Create a Bell empirical model.
+    """
     scenario = chsh_scenario()
     table = [[4/8, 0/8, 0/8, 4/8],
              [3/8, 1/8, 1/8, 3/8],
@@ -311,6 +485,24 @@ def bell_model() -> Model:
     return Model(chsh_scenario(), table)
 
 def random_model(scenario: Scenario, scaling=None):
+    """Generate a random empirical model given a measurement
+    scenario. 
+
+    The probabilities are generated by first uniformly 
+    sample real numbers between 0 and 1, and then 
+    each distribution is normalised to one.
+
+    A scaling mask can be provided if you want to control 
+    the relative strength given to each probability.
+
+    Parameters
+    ----------
+    scenario : Scenario
+    scaling :
+        A scaling masks which should have the same shape
+        as the distributions table one supplies to the 
+        constructor of a Model object.
+    """
     contexts = scenario.contexts
     num_outcome = scenario.num_outcome
     table = []
