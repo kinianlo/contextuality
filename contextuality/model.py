@@ -79,9 +79,6 @@ class Scenario:
         out += f"Contexts\t[{context_str}]\n"
         out += f"Outcomes\t[{outcome_str}]"
         return out
-        weight_NS = self._decomposition('sf')
-        weight_SS = 1- weight_NS
-        return weight_SS
 
 
 class CyclicScenario(Scenario):
