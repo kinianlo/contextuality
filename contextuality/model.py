@@ -193,7 +193,7 @@ class Model:
         one = numpy.ones(num_global_assign)
 
         problem = picos.Problem()
-        problem.options.solver = "mosek"
+        #problem.options.solver = "mosek"
 
         b = picos.RealVariable('b', num_global_assign)
 
