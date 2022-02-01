@@ -4,6 +4,24 @@ A library for handling sheaf-theoretic empirical models. The library currently s
 2. Signalling fraction 
 3. CbD measure for _binary cyclic measurement scenarios_
 
+## Install
+1. Clone the repository:  
+```
+git clone https://github.com/kinianlo/contextuality.git
+```
+
+2. Change directory into `contextuality`:  
+```
+cd contextuality
+```
+
+3. Install the package using `pip`:  
+```
+pip install . --upgrade
+```  
+Note: The `--upgrade` flag here is to ensure that the newest version gets installed even if an older version is previously installed.
+
+
 ## Examples
 ```
 from contextuality.model import pr_model
