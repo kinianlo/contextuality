@@ -1,6 +1,7 @@
 import numpy
 import itertools
 import picos
+from contextuality.utils import sum_odd
 
 class Scenario:
     """
@@ -231,6 +232,19 @@ class Model:
         weight_SS = 1- weight_NS
         return weight_SS
 
+    def CbD_direct_influence(self) -> float:
+        # Currently only for cyclic scenario with binary outcome 
+        assert isinstance(self.scenario, CyclicScenario)
+        assert self.scenario.num_outcome == 2
+
+        dist = self._distributions
+
+        parity_in = numpy.array([1, 1, -1, -1])
+        parity_out = numpy.array([1, -1, 1, -1])
+        ev_in = [numpy.dot(d, parity_in) for d in dist]
+        ev_out = [numpy.dot(d, parity_out) for d in dist]
+
+        return sum(numpy.abs(ev_in - numpy.roll(ev_out, 1)))
 
     def CbD_measure(self) -> float:
         """Compute the CbD measure for binary cyclic scenarios.
@@ -242,28 +256,10 @@ class Model:
         contexts = self.scenario.contexts
         dist = self._distributions
 
-        corr = [] 
         parity = numpy.array([1, -1, -1, 1])
-        for i in range(len(contexts)):
-            corr.append(sum(dist[i] * parity))
+        corr = [numpy.dot(d, parity) for d in dist]
 
-        corr_neg = list(filter(lambda x: x < 0, corr))
-        s_odd = sum(numpy.abs(corr))
-        if len(corr_neg) == 0:
-            s_odd -= 2 * min(corr)
-        elif len(corr_neg) % 2 == 0:
-            s_odd += 2 * max(corr_neg)
-
-        ev_in = []
-        ev_out = []
-        parity_in = numpy.array([1, 1, -1, -1])
-        parity_out = numpy.array([1, -1, 1, -1])
-        for i in range(len(contexts)):
-            ev_in.append(sum(dist[i] * parity_in))
-            ev_out.append(sum(dist[i] * parity_out))
-        Delta = sum(numpy.abs(ev_in - numpy.roll(ev_out, 1)))
-
-        return s_odd - Delta - (len(contexts) - 2)
+        return sum_odd(corr) - self.CbD_direct_influence() - (len(contexts) - 2)
 
     def mix(self, other, weight: float):
         """Return the convex sum of this model and another model.
