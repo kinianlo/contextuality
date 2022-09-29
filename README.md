@@ -1,5 +1,5 @@
 # Contextualiy
-A library for handling sheaf-theoretic empirical models. The library currently support the following computation:
+A library for handling sheaf-theoretic empirical models. The library currently supports the following computation:
 1. Contextual fraction
 2. Signalling fraction 
 3. CbD measure for _binary cyclic measurement scenarios_
