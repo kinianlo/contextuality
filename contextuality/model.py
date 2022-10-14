@@ -1,3 +1,4 @@
+from typing import Union
 import numpy
 import itertools
 import picos
@@ -16,10 +17,16 @@ class Scenario:
         The number of possible outcome for every observables.
     """
 
-    def __init__(self, contexts: list, num_outcome: int):
+    def __init__(self, contexts: list, outcomes: Union[list, int]):
         self.contexts = contexts
-        self.num_outcome = num_outcome
+        if isinstance(outcomes, int):
+            self.num_outcome = outcomes
+            self.outcomes = list(range(outcomes))
+        else:
+            self.num_outcome = len(outcomes)
+            self.outcomes = outcomes
 
+        # Caches
         self._observables = None
         self._incidence_matrix = None
 
