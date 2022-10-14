@@ -152,7 +152,7 @@ class Model:
                 context = scenario.contexts[i]
                 self._distributions.append(numpy.array(distributions[i]))
 
-                if len(dist) != scenario.num_outcome*len(context):
+                if len(distributions) != scenario.num_outcome*len(context):
                     raise ValueError(f"The distribution provided for context {context} has the wrong number of probabilities")
 
     @property
@@ -315,6 +315,14 @@ class Model:
             for i in range(len(self.scenario.contexts)):
                 dist.append(operation(self_dist[i], self_dist[i]))
             return Model(self.scenario, dist)
+    
+    def summary(self):
+        output = ''
+        output += f'CF: {self.contextual_fraction():.6f}\n'
+        output += f'SF: {self.signalling_fraction():.6f}\n'
+        output += f'Δ: {self.CbD_direct_influence():.6f}\n'
+        output += f'CbD: {self.CbD_measure():.6f}'
+        return output
 
     def __add__(self, other):
         return self.__distributions_binary_operation(other, lambda x, y: x + y)
