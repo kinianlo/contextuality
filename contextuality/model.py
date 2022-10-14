@@ -217,8 +217,6 @@ class Model:
         weight_SC = 1 - weight_NC
         return weight_SC
 
-    cf = 
-
     def signalling_fraction(self) -> float:
         """Compute the signalling fraction of the model.
         """
@@ -371,6 +369,11 @@ class Model:
         scenario_repr = self.scenario.__repr__()
         dist_repr = self._distributions.__repr__()
         return f"{class_name}({scenario_repr}, {dist_repr})"
+
+    cf = contextual_fraction
+    sf = signalling_fraction
+    delta = CbD_direct_influence
+    cbd = CbD_measure
 
 
 def chsh_scenario() -> CyclicScenario:
