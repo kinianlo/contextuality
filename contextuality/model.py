@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List, Tuple, Optional
 import numpy
 import itertools
 import picos
@@ -17,7 +17,7 @@ class Scenario:
         The number of possible outcome for every observables.
     """
 
-    def __init__(self, contexts: list, outcomes: Union[list, int]):
+    def __init__(self, contexts: List[Tuple[str, ...]], outcomes: Union[list, int]):
         self.contexts = contexts
         if isinstance(outcomes, int):
             self.num_outcome = outcomes
@@ -167,7 +167,7 @@ class Model:
             raise ValueError(f"The given context {context} does not exists.")
         context_idx = self.scenario.contexts.index(context)
         outcome_idx = sum(out*self.scenario.num_outcome**i for i, out in enumerate(outcome))
-        return self._distributions[context_idx, outcome_idx]
+        return self._distributions[context_idx][outcome_idx]
 
     @property
     def vector(self) -> numpy.ndarray:
@@ -247,7 +247,7 @@ class Model:
         ev_in = [numpy.dot(d, parity_in) for d in dist]
         ev_out = [numpy.dot(d, parity_out) for d in dist]
 
-        return sum(numpy.abs(ev_in - numpy.roll(ev_out, 1)))
+        return sum(numpy.abs(numpy.array(ev_in) + -numpy.roll(ev_out, 1)))
 
     def CbD_measure(self) -> float:
         """Compute the CbD measure for binary cyclic scenarios.
@@ -315,8 +315,8 @@ class Model:
                 return Model(other.scenario, dist)
         else:
             dist = []
-            self_dist = self.scenario._distributions
-            other_dist = other.scenario._distributions
+            self_dist = self._distributions
+            other_dist = other._distributions
             for i in range(len(self.scenario.contexts)):
                 dist.append(operation(self_dist[i], self_dist[i]))
             return Model(self.scenario, dist)
@@ -430,7 +430,7 @@ def get_model_from_vector(scenario, vector) -> Model:
     dist = numpy.split(vector, context_last_idx[:-1])
     return Model(scenario, dist)
 
-def pr_model(n: int=None) -> Model:
+def pr_model(n: int=4) -> Model:
     """Create a (general) PR box empirical model.
     If the number of observable is not specified, the
     traditional PR box with 4 observables is created,

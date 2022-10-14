@@ -5,13 +5,13 @@ from contextuality.utils import sum_odd
 
 def test_probability():
     model = random_pr_like_model(n=3)
-    assert model._distributions[0, 0] == model.probability(('x1', 'x2'), (0, 0))
-    assert model._distributions[0, 1] == model.probability(('x1', 'x2'), (0, 1))
-    assert model._distributions[0, 2] == model.probability(('x1', 'x2'), (1, 0))
-    assert model._distributions[0, 3] == model.probability(('x1', 'x2'), (1, 1))
+    assert model._distributions[0][0] == model.probability(('x1', 'x2'), (0, 0))
+    assert model._distributions[0][1] == model.probability(('x1', 'x2'), (0, 1))
+    assert model._distributions[0][2] == model.probability(('x1', 'x2'), (1, 0))
+    assert model._distributions[0][3] == model.probability(('x1', 'x2'), (1, 1))
 
-    assert model._distributions[1, 0] == model.probability(('x2', 'x3'), (0, 0))
-    assert model._distributions[2, 0] == model.probability(('x3', 'x1'), (0, 0))
+    assert model._distributions[1][0] == model.probability(('x2', 'x3'), (0, 0))
+    assert model._distributions[2][0] == model.probability(('x3', 'x1'), (0, 0))
 
 def test_CbD_direction_influence():
     for _ in range(10):
@@ -28,6 +28,23 @@ def test_CbD_measure():
         assert approx(model.CbD_measure()) == 2 - (2 * (abs(dist[0][0] - dist[1][0]) + 
             abs(dist[1][0] - dist[2][1]) + 
             abs(dist[2][1] + dist[0][0] - 1)))
+
+    import numpy as np
+    def get_s1(model, ctx):
+        """
+        Calculates the s_odd term in the CbD inequality.
+        """
+        n = len(ctx)
+        prods = [np.sum(np.array([[1,-1], [-1,1]])*np.asarray(model[ii]).reshape((2,2))) for ii in range(n)]
+        return sum_odd(prods)
+
+    scenario = CyclicScenario(['x1', 'x2', 'x3'], 2)
+    n = len(scenario.contexts)
+    for _ in range(20):
+        model = random_model(scenario)
+        Deltas = model.CbD_direct_influence()
+        s1s = get_s1(model._distributions, scenario.contexts)
+        return n - 2 + Deltas - s1s
 
 def test_sum_odd():
     import numpy as np 
@@ -102,20 +119,3 @@ def test_direct_inflence():
         model = random_model(scenario)
         assert model.CbD_direct_influence() == approx(get_delta(model._distributions, scenario.contexts))
 
-def test_CbD_measure():
-    import numpy as np
-    def get_s1(model, ctx):
-        """
-        Calculates the s_odd term in the CbD inequality.
-        """
-        n = len(ctx)
-        prods = [np.sum(np.array([[1,-1], [-1,1]])*np.asarray(model[ii]).reshape((2,2))) for ii in range(n)]
-        return sum_odd(prods)
-
-    scenario = CyclicScenario(['x1', 'x2', 'x3'], 2)
-    n = len(scenario.contexts)
-    for _ in range(20):
-        model = random_model(scenario)
-        Deltas = model.CbD_direct_influence()
-        s1s = get_s1(model._distributions, scenario.contexts)
-        return n - 2 + Deltas - s1s
