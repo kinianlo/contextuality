@@ -3,6 +3,16 @@ from pytest import approx
 from contextuality.model import Scenario, CyclicScenario, random_pr_like_model, random_model
 from contextuality.utils import sum_odd
 
+def test_probability():
+    model = random_pr_like_model(n=3)
+    assert model._distributions[0, 0] == model.probability(('x1', 'x2'), (0, 0))
+    assert model._distributions[0, 1] == model.probability(('x1', 'x2'), (0, 1))
+    assert model._distributions[0, 2] == model.probability(('x1', 'x2'), (1, 0))
+    assert model._distributions[0, 3] == model.probability(('x1', 'x2'), (1, 1))
+
+    assert model._distributions[1, 0] == model.probability(('x2', 'x3'), (0, 0))
+    assert model._distributions[2, 0] == model.probability(('x3', 'x1'), (0, 0))
+
 def test_CbD_direction_influence():
     for _ in range(10):
         model = random_pr_like_model(n=3)

@@ -162,6 +162,13 @@ class Model:
                 if len(distributions) != scenario.num_outcome*len(context):
                     raise ValueError(f"The distribution provided for context {context} has the wrong number of probabilities")
 
+    def probability(self, context: tuple, outcome: tuple):
+        if context not in self.scenario.contexts:
+            raise ValueError(f"The given context {context} does not exists.")
+        context_idx = self.scenario.contexts.index(context)
+        outcome_idx = sum(out*self.scenario.num_outcome**i for i, out in enumerate(outcome))
+        return self._distributions[context_idx, outcome_idx]
+
     @property
     def vector(self) -> numpy.ndarray:
         """Returns the distributions in a flattened vector.
