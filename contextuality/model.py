@@ -177,7 +177,6 @@ class Model:
             The options are:
                 'cf': contextual fraction
                 'sf': signalling_fraction
-                'sf_old': signalling_fraction with constraint b > -1
 
         Returns
         -------
@@ -219,14 +218,6 @@ class Model:
         """Compute the signalling fraction of the model.
         """
         weight_NS = self._decomposition('sf')
-        weight_SS = 1- weight_NS
-        return weight_SS
-
-    def _signalling_fraction_old(self) -> float:
-        """Compute the signalling fraction with the b > -1
-        constraint.
-        """
-        weight_NS = self._decomposition('sf_old')
         weight_SS = 1- weight_NS
         return weight_SS
 
