@@ -201,8 +201,6 @@ class Model:
 
         if mode == 'cf':
             problem.add_constraint(b >= 0)
-        if mode == 'sf_old':
-            problem.add_constraint(b >= -1)
         if mode == 'sf':
             problem.add_constraint(M*b >= 0)
 
