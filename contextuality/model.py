@@ -217,6 +217,8 @@ class Model:
         weight_SC = 1 - weight_NC
         return weight_SC
 
+    cf = 
+
     def signalling_fraction(self) -> float:
         """Compute the signalling fraction of the model.
         """
