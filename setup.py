@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Contextuality',
-    version='0.0.1',
+    version='0.1.0',
     url='https://github.com/kinianlo/contextuality',
     author='Kin Ian Lo',
     author_email='keonlo123@gmail.com',

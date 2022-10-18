@@ -352,7 +352,7 @@ class Model:
         if isinstance(self.scenario, CyclicScenario):
             context_strs = [str(c).replace("'", "")+' ' for c in contexts]
             context_col_width = max(map(len, context_strs))
-            assigns = map(str, itertools.product(range(2), repeat=num_outcome))
+            assigns = map(str, itertools.product(self.scenario.outcomes, repeat=num_outcome))
             assigns_str = ' '.join(assigns)
             out += ' '*context_col_width + assigns_str + '\n'
             for i, c in enumerate(contexts):
