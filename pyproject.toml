@@ -1,7 +1,7 @@
 [project]
 name = "contextuality"
 description = "To do calculation with empirical models."
-version = "0.1.1"
+version = "0.1.2"
 authors = [
     { name = "Kin Ian Lo", email = "keonlo123@gmail.com" }
 ]
