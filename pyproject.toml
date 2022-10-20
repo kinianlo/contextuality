@@ -1,0 +1,21 @@
+[project]
+name = "contextuality"
+description = "To do calculation with empirical models."
+version = "0.1.1"
+authors = [
+    { name = "Kin Ian Lo", email = "keonlo123@gmail.com" }
+]
+dependencies = [
+    "numpy",
+    "picos",
+    "prettytable"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest"
+]
+
+[build-system]
+build-backend = "flit_core.buildapi"
+requires = ["flit_core >=3.2,<4"]
