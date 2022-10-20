@@ -109,13 +109,8 @@ class CyclicScenario(Scenario):
         The number of possible outcome for every observables.
     """
 
-    def __init__(self, observables: List[Tuple[str, ...]], outcomes: Union[list, int]):
-        self._observables = observables
-        contexts = []
-        for i in range(len(observables)):
-            i_next = (i + 1) % len(observables)
-            contexts.append((observables[i], observables[i_next]))
-
+    def __init__(self, observables: List[str], outcomes: Union[list, int]):
+        contexts = list(zip(observables, observables[1:] + observables[:1]))
         super().__init__(contexts, outcomes)
 
     def __repr__(self):
