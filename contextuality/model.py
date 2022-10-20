@@ -116,7 +116,7 @@ class CyclicScenario(Scenario):
             i_next = (i + 1) % len(observables)
             contexts.append((observables[i], observables[i_next]))
 
-        super().__init__(contexts, num_outcome)
+        super().__init__(contexts, outcomes)
 
     def __repr__(self):
         class_name = self.__class__.__name__
