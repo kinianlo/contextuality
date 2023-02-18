@@ -1,4 +1,5 @@
 from typing import Union, List, Tuple, Optional
+from __future__ import annotations
 import numpy
 import itertools
 import picos
@@ -157,7 +158,7 @@ class Model:
                 if len(distributions) != scenario.num_outcome*len(context):
                     raise ValueError(f"The distribution provided for context {context} has the wrong number of probabilities")
 
-    def probability(self, context: tuple, outcome: tuple):
+    def probability(self, context: Tuple[str, ...], outcome: tuple) -> float:
         if context not in self.scenario.contexts:
             raise ValueError(f"The given context {context} does not exists.")
         context_idx = self.scenario.contexts.index(context)
@@ -259,7 +260,7 @@ class Model:
 
         return sum_odd(corr) - self.CbD_direct_influence() - (len(contexts) - 2)
 
-    def mix(self, other, weight: float):
+    def mix(self, other: Model, weight: float) -> Model:
         """Return the convex sum of this model and another model.
 
         Parameters
