@@ -1,5 +1,5 @@
-from typing import Union, List, Tuple, Optional
 from __future__ import annotations
+from typing import Union, List, Tuple, Optional
 import numpy
 import itertools
 import picos
@@ -141,7 +141,6 @@ class Model:
 
         self.scenario = scenario
         self._distributions = []
-        self._vector = None
 
         if isinstance(scenario, CyclicScenario):
             self._distributions = numpy.array(distributions)
@@ -151,12 +150,11 @@ class Model:
             if self._distributions.shape != expected_shape:
                 raise ValueError("The distributions provided are not compatible with the scenario.")
         else:
-            for i in range(len(distributions)):
-                context = scenario.contexts[i]
-                self._distributions.append(numpy.array(distributions[i]))
+            for context, distribution in zip(scenario.contexts, distributions):
+                self._distributions.append(numpy.array(distribution))
 
-                if len(distributions) != scenario.num_outcome*len(context):
-                    raise ValueError(f"The distribution provided for context {context} has the wrong number of probabilities")
+                if len(distribution) != scenario.num_outcome**len(context):
+                    raise ValueError(f"The distribution provided for context {context} has the incorrect number of probabilities")
 
     def probability(self, context: Tuple[str, ...], outcome: tuple) -> float:
         if context not in self.scenario.contexts:
@@ -172,10 +170,7 @@ class Model:
         the vector. The distribution of the second context goes 
         second in the vector, etc.
         """
-        if self._vector:
-            return self._vector
-        else:
-            return numpy.array(self._distributions).flatten()
+        return numpy.array([p for dist in self._distributions for p in dist])
 
     def _decomposition(self, mode: str) -> float:
         """_decomposition.
@@ -200,7 +195,7 @@ class Model:
         one = numpy.ones(num_global_assign)
 
         problem = picos.Problem()
-        #problem.options.solver = "mosek"
+        problem.options.solver = "mosek"
 
         b = picos.RealVariable('b', num_global_assign)
 
@@ -228,7 +223,7 @@ class Model:
         """Compute the signalling fraction of the model.
         """
         weight_NS = self._decomposition('sf')
-        weight_SS = 1- weight_NS
+        weight_SS = 1 - weight_NS
         return weight_SS
 
     def CbD_direct_influence(self) -> float:
@@ -342,7 +337,7 @@ class Model:
         return self.__mul__(scaler)
 
     def __str__(self):
-        num_outcome = self.scenario.num_outcome;
+        num_outcome = self.scenario.num_outcome
         contexts = self.scenario.contexts
         out = ""
         if isinstance(self.scenario, CyclicScenario):
@@ -356,7 +351,7 @@ class Model:
                 out += context_strs[i] + dist_str + '\n'
         else:
             for i, c in enumerate(contexts):
-                assigns = map(str, itertools.product(range(len(c)), repeat=num_outcome))
+                assigns = map(str, itertools.product(range(num_outcome), repeat=len(c)))
                 assigns_str = ' '.join(assigns)
                 context_str = str(c).replace("'", "") + "->"
                 dist_str = ' '.join([f"{p:>6.4f}" for p in self._distributions[i]])
