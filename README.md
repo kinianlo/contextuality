@@ -5,6 +5,13 @@ A library for handling sheaf-theoretic empirical models. The library currently s
 3. CbD measure for _binary cyclic measurement scenarios_
 
 ## Install
+
+### Method 1
+```
+pip install --upgrade git+https://github.com/kinianlo/contextuality.git
+```
+
+### Method 2
 1. Clone the repository:  
 ```
 git clone https://github.com/kinianlo/contextuality.git
@@ -42,5 +49,5 @@ table = [[4/8, 0/8, 0/8, 4/8],
          [1/8, 3/8, 3/8, 1/8]]
 bell_model = Model(scneario, table)
 cf = bell_model.contextual_fraction()
-print(f"The contetual fraction of the Bell model is {cf:.4f}."}
+print(f"The contetual fraction of the Bell model is {cf:.4f}.")
 ```
